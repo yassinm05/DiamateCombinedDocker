@@ -1,0 +1,95 @@
+{
+  "info": {
+    "_postman_id": "51b299c8-0d21-41a2-8cb8-8691ac3657db",
+    "name": "DiaMate-DFU",
+    "description": "Diabetic Foot Ulcer Segmentation API - U-Net semantic segmentation for diabetic foot ulcer detection\n\n## Overview\nThis API provides endpoints for detecting and segmenting diabetic foot ulcers from medical images using a trained U-Net deep learning model.\n\n## Base URL\nReplace `{{base_url}}` with your server address (e.g., http://localhost:8000)\n\n## Authentication\nNo authentication required for this version.\n\n## Image Format\nImages must be sent as base64-encoded strings. Supported formats: JPEG, PNG\n- Maximum file size: 20 MB\n- Minimum dimensions: 64x64 pixels\n- Recommended: Clear smartphone photos of the foot",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "50360145",
+    "_collection_link": "https://go.postman.co/collection/50360145-51b299c8-0d21-41a2-8cb8-8691ac3657db?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Get Health Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", ""]
+            },
+            "description": "Check the health status of the API and model loading status.\n\n### Endpoint\n`GET /api/v1/`\n\n### Description\nVerifies that the API is running and the ML model is properly loaded. Use this endpoint to confirm the system is ready to process segmentation requests.\n\n### Input Parameters\nNone - This is a simple health check endpoint.\n\n### Success Response (200 OK)\n```json\n{\n  \"model_loaded\": \"loaded\",\n  \"device\": \"cuda\" | \"cpu\" | \"mps\",\n  \"signal\": \"Model loaded successfully.\"\n}\n```\n\n**Response Fields:**\n- `model_loaded` (string): Status of the model - either \"loaded\" or \"not loaded\"\n- `device` (string): The compute device the model is running on\n  - `cuda`: NVIDIA GPU (if available)\n  - `cpu`: CPU fallback\n  - `mps`: Apple Metal Performance Shaders (macOS)\n  - `none`: Model not loaded\n- `signal` (string): Status message\n\n### Error Response (503 Service Unavailable)\n```json\n{\n  \"model_loaded\": \"not loaded\",\n  \"device\": \"none\",\n  \"signal\": \"Model is not loaded. Please ensure the model is properly initialized.\"\n}\n```\n\n**Explanation:**\n- Status Code 503: The model failed to load during API startup\n- This typically means:\n  - The model file (unet.pth) is missing or corrupted\n  - Insufficient memory to load the model\n  - Device initialization failed\n- **Action:** Ensure the model checkpoint exists and the system has sufficient resources\n\n### Status Codes\n- **200**: Model loaded successfully and API is ready\n- **503**: Model not loaded - API cannot process segmentation requests"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Segmentation",
+      "item": [
+        {
+          "name": "Segment Diabetic Foot Ulcer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image_b64\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/segmentation/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "segmentation", ""]
+            },
+            "description": "Submit a medical image for diabetic foot ulcer detection and segmentation.\n\n### Endpoint\n`POST /api/v1/segmentation/`\n\n### Description\nProcesses a base64-encoded medical image using the U-Net model to detect and segment diabetic foot ulcers. Returns detection results, segmentation mask, and visual overlay.\n\n### Request Body\n\n**Content-Type:** `application/json`\n\n```json\n{\n  \"image_b64\": \"string\"\n}\n```\n\n**Parameters:**\n- `image_b64` (string, required): The medical image encoded as base64\n  - **Type:** Base64-encoded image string\n  - **Supported formats:** JPEG, PNG\n  - **Max size:** 20 MB\n  - **Min dimensions:** 64x64 pixels\n  - **Recommended:** Clear smartphone photos of the affected foot area\n\n### How to Prepare the Image\n1. Read the image file in binary mode\n2. Encode to base64: `base64.b64encode(image_bytes).decode('utf-8')`\n3. Include in the JSON request body\n\n### Success Response (200 OK)\n\n```json\n{\n  \"ulcer_detected\": true | false,\n  \"ulcer_pixels\": 12450,\n  \"total_pixels\": 262144,\n  \"ulcer_coverage\": 4.75,\n  \"inference_ms\": 250.5,\n  \"mask_b64\": \"iVBORw0KGgoAAAANSUhEUgAAA...\",\n  \"overlay_b64\": \"iVBORw0KGgoAAAANSUhEUgAAA...\"\n}\n```\n\n**Response Fields:**\n- `ulcer_detected` (boolean): Whether a diabetic foot ulcer was detected in the image\n- `ulcer_pixels` (integer): Number of pixels classified as ulcer tissue\n- `total_pixels` (integer): Total number of pixels in the analyzed image (512×512 = 262,144)\n- `ulcer_coverage` (float): Percentage of foot area covered by ulcer (0.0–100.0)\n- `inference_ms` (float): Model inference time in milliseconds (performance metric)\n- `mask_b64` (string): Base64-encoded PNG of the binary ulcer segmentation mask\n  - White pixels (255): Predicted ulcer regions\n  - Black pixels (0): Non-ulcer regions\n- `overlay_b64` (string): Base64-encoded PNG with the original image and ulcer region highlighted in red\n  - Helps visualize the segmentation results on the original image\n\n### Error Responses\n\n#### 400 Bad Request - Empty Image\n```json\n{\n  \"signal\": \"The image is empty.\"\n}\n```\n**Explanation:** The provided base64 string decoded to an empty byte stream.\n- **Action:** Verify the image file is not corrupted and contains data\n\n#### 413 Payload Too Large\n```json\n{\n  \"signal\": \"Image too large (25.5 MB). Maximum allowed size is 20.0 MB.\"\n}\n```\n**Explanation:** The image file exceeds the 20 MB size limit.\n- **Maximum file size:** 20 MB\n- **Action:** Compress the image or use a smaller resolution\n\n#### 422 Unprocessable Entity - Invalid Image Format\n```json\n{\n  \"signal\": \"Invalid image data. Please provide a valid base64-encoded image.\"\n}\n```\n**Explanation:** The base64 string is malformed or the decoded data is not a valid image.\n- **Action:** Ensure the base64 string is valid and the image format is JPEG or PNG\n\n#### 422 Unprocessable Entity - Image Too Small\n```json\n{\n  \"signal\": \"Image too small (48×32). Please upload a clear smartphone photo of the foot.\"\n}\n```\n**Explanation:** The image dimensions are below the minimum required size (64×64 pixels).\n- **Minimum dimensions:** 64×64 pixels\n- **Recommended:** Higher resolution for better segmentation accuracy\n- **Action:** Use a higher resolution image\n\n### Status Codes\n- **200**: Segmentation completed successfully\n- **400**: Empty image - no data provided\n- **413**: File too large - exceeds 20 MB limit\n- **422**: Invalid image data or preprocessing error (format, dimensions, or corruption)\n\n### Processing Details\n1. Image is decoded from base64\n2. Image is resized to 512×512 pixels using bilinear interpolation\n3. Normalized using ImageNet statistics (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])\n4. U-Net model performs semantic segmentation\n5. Segmentation mask is generated using sigmoid activation with 0.5 threshold\n6. Statistics are computed from the binary mask\n7. Visual overlay is created for result visualization\n\n### Performance Notes\n- **GPU:** ~100-300 ms inference time\n- **CPU:** ~500-1000 ms inference time\n- **Actual time depends on:** System hardware, load, batch processing"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ]
+}
