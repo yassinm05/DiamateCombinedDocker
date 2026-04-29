@@ -1,0 +1,7 @@
+services:
+  combined:
+    build: .
+    ports:
+      - "5000:5000"   # your project (UNet)
+      - "8000:8000"   # friend's project (YOLO/VLM)
+    restart: unless-stopped
