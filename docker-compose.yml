@@ -1,3 +1,4 @@
+name  : DiaMate-Combined
 services:
   combined:
     build: .
