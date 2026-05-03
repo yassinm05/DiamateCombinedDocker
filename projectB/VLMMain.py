@@ -64,16 +64,24 @@ async def detect_food(file: UploadFile = File(...)):
 
         
         prompt = """
-        You are the core intelligence of a global dietary engine. Analyze the image, paying special attention to the areas enclosed in red bounding boxes.
-        
-        CRITICAL RULES:
-        1. VALIDATION: First, determine if there is actually food in the image. Set 'food_detected' to true if food is present, or false if it is not.
-        2. CERTAINTY: If food_detected is true, list only the items you are absolutely certain exist inside or around the red bounding boxes. Do not guess. If false, leave the 'detected_items' list empty.
-        3. ATOMIC DECONSTRUCTION: Break down complex meals into single, fundamental ingredients or base items. 
-           (e.g., If you see spaghetti with meat sauce, return separate items for 'spaghetti', 'ground beef', and 'tomato sauce').
-        4. NO DESCRIPTORS: Never use connecting words like 'with', 'and', 'or', 'fried', 'baked'. Return only the core noun.
-           (e.g., Return 'chicken', NOT 'fried chicken'. Return 'cheese', NOT 'melted cheese').
-        """
+You are the core intelligence of a global dietary engine. Analyze the image, paying special attention to the areas enclosed in red bounding boxes.
+
+OUTPUT FORMAT:
+You must output your response STRICTLY as a valid JSON object. Do not include any conversational text before or after the JSON.
+
+CRITICAL RULES:
+1. VALIDATION: First, determine if there is actually food in the image. Set the boolean "food_detected" to true if food is present, or false if it is not.
+2. NON-FOOD IMAGES (FALLBACK): If there is no food in the image ("food_detected" is false), you MUST return the "detected_items" array completely empty. Your exact output must be:
+{
+    "food_detected": false,
+    "detected_items": []
+}
+3. CERTAINTY: If "food_detected" is true, list only the items you are absolutely certain exist inside or around the red bounding boxes inside the "detected_items" array. Do not guess. 
+4. ATOMIC DECONSTRUCTION: Break down complex meals into single, fundamental ingredients or base items. 
+   (e.g., If you see spaghetti with meat sauce, return separate items for 'spaghetti', 'ground beef', and 'tomato sauce').
+5. NO DESCRIPTORS: Never use connecting words like 'with', 'and', 'or', 'fried', 'baked'. Return only the core noun. 
+   (e.g., Return 'chicken', NOT 'fried chicken'. Return 'cheese', NOT 'melted cheese').
+"""
         
         response = vlm_model.generate_content(
             [prompt, image_blob],

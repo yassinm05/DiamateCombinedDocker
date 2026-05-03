@@ -247,4 +247,8 @@ To see which files are in LFS:
 
 ```bash
 git lfs ls-files
+<<<<<<< HEAD
 ```
+=======
+```
+>>>>>>> fbaab7620fdfa7a3f6431c113bca2bb549c50532
