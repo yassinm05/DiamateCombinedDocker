@@ -2,9 +2,14 @@ from pydantic import BaseModel, ConfigDict
 from .utility import get_device
 import numpy as np
 import torch
+from pathlib import Path
+
+# Get the absolute path to the model file
+_config_dir = Path(__file__).parent.parent
+_model_path = str(_config_dir / "model" / "unet.pth")
 
 class Config(BaseModel):
-    model_path: str = "model/unet.pth"
+    model_path: str = _model_path
     device: torch.device = get_device()
 
     feature_channels: list[int] = [64, 128, 256, 512]
