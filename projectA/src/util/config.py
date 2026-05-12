@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from util.utility import get_device
+from .utility import get_device
 import numpy as np
 import torch
 

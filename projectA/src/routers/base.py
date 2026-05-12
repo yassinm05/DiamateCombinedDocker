@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-from model.enums.enums import segmentationEnums
+from ..model.enums.enums import segmentationEnums
 
 base_router = APIRouter()
 

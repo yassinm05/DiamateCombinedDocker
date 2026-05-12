@@ -2,12 +2,12 @@ import time
 import base64
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
-from model.schemes import SegmentationRequest
-from controllers.seg_controller import preprocess, predict, build_overlay, compute_stats
-from model.schemes import SegmentationResponse
-from util.config import Config
-from util.utility import numpy_to_b64
-from model.enums.enums import segmentationEnums
+from ..model.schemes import SegmentationRequest
+from ..controllers.seg_controller import preprocess, predict, build_overlay, compute_stats
+from ..model.schemes import SegmentationResponse
+from ..util.config import Config
+from ..util.utility import numpy_to_b64
+from ..model.enums.enums import segmentationEnums
 
 
 config = Config()

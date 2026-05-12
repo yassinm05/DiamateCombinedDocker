@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from util.config import Config
+from ..util.config import Config
 
 config = Config()
 

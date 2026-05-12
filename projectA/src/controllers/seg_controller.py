@@ -3,10 +3,10 @@ import numpy as np
 import torch
 from pathlib import Path
 
-from model.unet import UNet
-from util.utility import get_device
-from util.config import Config
-from util.utility import decode_image_bytes
+from ..model.unet import UNet
+from ..util.utility import get_device
+from ..util.config import Config
+from ..util.utility import decode_image_bytes 
 
 config = Config()
 
